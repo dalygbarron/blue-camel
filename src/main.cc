@@ -1,8 +1,9 @@
 #include <portaudio.h>
 #include <cmath>
 #include <iostream>
+#include "Job.hh"
 
-float const SAMPLE_RATE = 44100.0f;
+float const SAMPLEL_RATE = 44100.0f;
 float const FREQUENCY = 440.0f; // A4 note
 unsigned int const BUFFER_SIZE = 64;
 
@@ -12,6 +13,13 @@ struct SineData {
     float phaseR = 0;
     float phaseIncrementL = 0;
     float phaseIncrementR = 0;
+};
+
+class SillyJob: public Job {
+    private:
+        void execute(void const *params) {
+            printf((char const *)params);
+        }
 };
 
 // Audio callback function
@@ -27,8 +35,8 @@ static int paCallback(
     float *out = (float *)outBuffer;
     SineData *data = (SineData*)userData;
     for(unsigned int i = 0; i < size; i++) {
-        *out++ = (float)sin(data->phaseL);
-        *out++ = (float)sin(data->phaseR);
+        *out++ = (sin(data->phaseL) > 0) ? 1 : -1;
+        *out++ = (sin(data->phaseR) > 0) ? 1 : -1;
         data->phaseL += data->phaseIncrementL;
         data->phaseR += data->phaseIncrementR;
         // Wrap phase to keep it in [0, 2*PI) range to avoid precision loss
@@ -60,7 +68,7 @@ PaStream *initPortAudio(PaStreamCallback callback, void *userData) {
         &stream,
         NULL,
         &outputParameters,
-        SAMPLE_RATE,
+        SAMPLEL_RATE,
         BUFFER_SIZE,
         paClipOff, // We won't output out of range samples so don't bother clipping them
         callback,
@@ -85,13 +93,18 @@ int main(int argc, char const **argv) {
     SineData data {
         0,
         0,
-        (2.0f * (float)M_PI * FREQUENCY) / SAMPLE_RATE,
-        (2.0f * (float)M_PI * (FREQUENCY + 0.5f)) / SAMPLE_RATE
+        (2.0f * (float)M_PI * FREQUENCY) / SAMPLEL_RATE,
+        (2.0f * (float)M_PI * (FREQUENCY + 0.5f)) / SAMPLEL_RATE
     };
     PaStream *stream = initPortAudio(paCallback, &data);
     if (stream == NULL) return 1;
+
+    Job::start();
+    SillyJob silly;
+    silly.enqueue("Ying ting");
     std::cout << "Playing sine wave. Press ENTER to stop." << std::endl;
     std::cin.get();
+    Job::stop();
     PaError err = Pa_StopStream(stream);
     if(err != paNoError) {
         std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;

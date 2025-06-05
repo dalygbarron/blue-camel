@@ -1,0 +1,10 @@
+Ok so we have two useful ideas to make this work well and fast.
+
+part one is that we add ALL the dsp jobs to the work queue at the same time and
+make the first part of every DSP job be waiting for the dependencies to
+finish.
+
+Of course this could easy cause resource starvation except for this next part
+which is that we keep all of the modules in a list that is sorted by how many
+dependencies they have (recursively), and that is the same order by which they
+are added to the work queue each time.

@@ -1,3 +1,9 @@
 [submodule "vendor/portaudio"]
 	path = vendor/portaudio
 	url = https://github.com/PortAudio/portaudio.git
+[submodule "vendor/rapidjson"]
+	path = vendor/rapidjson
+	url = git@github.com:Tencent/rapidjson.git
+[submodule "vendor/concurrentqueue"]
+	path = vendor/concurrentqueue
+	url = git@github.com:cameron314/concurrentqueue.git

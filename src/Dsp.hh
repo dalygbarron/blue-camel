@@ -1,12 +1,16 @@
 #pragma once
 
+#include <vector>
+#include <stdint.h>
 #include "Config.hh"
+#include "Job.hh"
+#include "Note.hh"
 
 /**
  * A module that can receive input from multiple sources and generate output
  * somehow.
  */
-class Dsp {
+class Dsp: public Job {
     public:
         /**
          * Represents a dependency on another Dsp Module.
@@ -17,67 +21,88 @@ class Dsp {
          */
         class Dependency {
             public:
-                Dsp const *dependency;
+                Dsp const *dsp;
                 bool audio;
-                unsigned int from;
-                unsigned int to;
+                uint8_t output;
+                uint8_t input;
+
+                /**
+                 * Basic constructor that just sets shit.
+                 * @param dsp the dsp.
+                 * @param audio true if audio dependency
+                 * @param output where it comes from in dep.
+                 * @param input where it goes in here.
+                 */
+                Dependency(
+                    Dsp const *dsp,
+                    bool audio,
+                    uint8_t output,
+                    uint8_t input
+                );
+        };
+
+        /**
+         * Params that are passed to all the dsp jobs.
+         */
+        class DspJobParams {
+            public:
+                unsigned long bufferSize;
+                float const *inBuffer;
+                float *outBuffer;
+        };
+
+        /**
+         * Representation of a parameter that a DSP effect can have.
+         */
+        class Parameter {
+            private:
+                char const *name;
+                char const *description;
+            public:
+                float value;
+                float min;
+                float max;
         };
 
     private:
-        std::atomic<unsigned int> unprocessedDependencies {0}
-        std::vector<Dsp const *> dependents;
-        std::vector<Dependency> dependencies;
-        bool processed = false;
+        void execute(void const *params) override;
 
         /**
-         * Actual DSP implementation.
-         * @param bufferSize is the number of samples to update and it won't
-         *        exceed Config::MAX_BUFFER_SIZE.
+         * This is the function where the actual algorithm is implemented.
+         * @param params is the set of params taht are sent to them all.
          */
-        virtual void implementation(unsigned int bufferSize);
+        virtual void implementation(DspJobParams const &params) = 0;
 
     protected:
         float **audioOutputs;
         Note **noteOutputs;
+        std::vector<Dependency> dependencies;
 
     public:
-        /**
-         * Call this before every process call to reset dsp modules to their
-         * pre processed state.
-         */
-        void preProcess();
-
-        /**
-         * Public wrapper around the DSP algorithm implementation that gets
-         * generic stuff set up.
-         * @param bufferSize is the amount of samples to process and I promise
-         *        it will not be greater than Config::MAX_BUFFER_SIZE.
-         */
-        void process(unsigned int bufferSize);
 
         /**
          * Tells you how many audio inputs this module can take.
          * @return the number of audio inputs it can take.
          */
-        virtual unsigned int getAudioInputs() const = 0;
+        virtual uint8_t getAudioInputs() const = 0;
 
         /**
          * Tells you how many note inputs this module can take.
          * @return the number of note inputs this module can take.
          */
-        virtual unsigned int getNoteInputs() const = 0;
+        virtual uint8_t getNoteInputs() const = 0;
 
         /**
          * Tells you how many audio outputs this module can produce.
          * @return the number of audio outputs this module produces.
          */
-        virtual unsigned int getAudioOutputs() const = 0;
+        virtual uint8_t getAudioOutputs() const = 0;
 
         /**
          * Tells you how many note outputs this module can produce.
          * @return the number of note outputs this module can produce.
          */
-        virtual unsigned int getNoteOutputs() const = 0;
+        virtual uint8_t getNoteOutputs() const = 0;
 
         /**
          * Sends you a const pointer to the output buffer of this DSP effect if
@@ -87,7 +112,7 @@ class Dsp {
          *        have a channel with that number then you get NULL.
          * @return a const pointer to it or null if it is not ready.
          */
-        float const *getAudio(unsigned int output) const;
+        float const *getAudio(uint8_t output) const;
 
         /**
          * Sends you a const pointer to a note buffer of this DSP effect if
@@ -97,18 +122,21 @@ class Dsp {
          *        get NULL.
          * @return a pointer to the note buffer.
          */
-        Note const *getNotes(unsigned int output) const;
-
-
-        void addNoteDependency(Dsp *dependency, unsigned int source, unsigned int input);
+        Note const *getNotes(uint8_t output) const;
 
         /**
          * Sets this DSP as dependent on the given DSP for audio and sets what
          * audio output of the DSP will be fed into what audio input of this
          * one.
          * @param dependency is the dsp to add as a dependency.
+         * @param audio is whether it's audio or notes, true meaning audio.
          * @param source is the output number of the dsp to depend on.
          * @param input is the input number of this dsp to connect it to.
          */
-        void addAudioDependency(Dsp *dependency, unsigned int source, unsigned int input);
+        void addDependency(
+            Dsp const *dependency,
+            bool audio,
+            uint8_t source,
+            uint8_t input
+        );
 };

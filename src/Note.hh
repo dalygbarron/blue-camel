@@ -23,4 +23,4 @@ class Note {
         uint16_t pitch;
         uint8_t type;
         uint8_t effect;
-}
+};

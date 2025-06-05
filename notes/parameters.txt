@@ -1,0 +1,22 @@
+So we basically want you to be able to automate any knob or slider right. The
+general idea is that we normalise it so -1 is always the lowest value of the
+knob/slider and 1 is always the highest and then you have to get it to whatever
+level it's really meant to be.
+
+Anyway so we need some sort of data setup so that when something is hooked up
+to a parameter we know and can read from that buffer, but if not we have got a
+value set on the actual ui or whatever that we can read.
+
+Well then again it's pretty common to have both, where the automation is centred
+around the value on the knob and also you can scale how powerful the automation
+is. We will not have scaling of the power. It doesn't make sense in our context
+and you could just use some kind of maths node (or more ideally a volume control
+inside whatever is generating the waveform), but yeah we want the value coming
+in plus whatever the knob value is, and then after that we denormalise it.
+
+So, how do we keep track of this stuff and deal with it efficiently?
+
+
+actually you know what, fuck parameter automation. If I want to automate a
+certain thing or add an option to do so I can just add a normal audio input
+but to do so for everything just makes it slower and more complex.

@@ -1,0 +1,85 @@
+Ok here is how we do the modular shit that I wanted:
+    we make it that instruments/generators can be connected to one another's
+    params. Then if say you want to trigger a riser that changes some other
+    thing's low pass filter level or something you just trigger it by a note
+    and it passes that shit to the other thing.
+
+
+so how does the engine work? Well, every so often we receive a callback from
+the system asking for more audio. At this point we can work backwards from the
+output node of the dsp graph to get audio from all the stuff we need audio
+from. But, how does the system react to notes?
+
+So, lets say we only handle notes when a new audio buffer is requested.
+Typically for real time audio you want a buffer size of like 64 or 128. At the
+normal sample rate of 44100Hz, this would mean we have a new buffer hundreds of
+times a second. nah.
+
+Looks like the done thing is just to actually trigger notes on the sample that
+They are supposed to start on. Only messy thing here for me is that if we want
+to keep the notes simply in sequencer thing without any additional data
+structure then we need to make sure that they can be accessed efficiently.
+
+One upside though I suppose is that since we are based on a tracker model,
+notes can actually only be present at specific points in time. This means the
+performance cost of searching for notes won't be such a big deal since we will
+only have to do it every however many samples and that will be absorbed into
+the overall time the buffer takes to fill.
+
+Now though, the regularity of "lines" varies based on the BPM. I think we
+should have some kind of "tick" which is a fixed number of samples (at least
+when the sample rate is fixed), and then the BPM is a multiple of ticks. Will
+this lead to desynchronisation? lets see...
+
+I can't be bothered with the maths but yes it will. I think it would be wiser
+to make the tick happen at a fixed frequency time wise rather than sample wise
+(and thus the rounding errors occur at the sample level and do not snowball).
+
+Yeah so calculating when a tick will occur requires some floating point math
+probably, but the tick number will be an integer so we can quickly find any
+relevant stuff going on like automations. Actually for the time being I don't
+intend to add automations because they can be replaced by audio generators imo.
+
+So ticks will only really exist because it will allow us to implement timing
+offset on notes. Timing offset will only be forwards so it's still easy to find
+the notes to play, and it will have granularity up to a 16th of a line.
+
+yeah so each 16th tick is a line. Beats are kind of a meaningless visual cue
+really so I will try not to speak of them further.
+
+Also the DSP graph needs to be acyclic.
+
+
+Ok, so now, how does the sequencer work?
+so we iterate along, and every time it comes to a tick, the sequencer checks
+through all the patterns we have at this point for a note that should play or
+end on this tick. If so, they are sent to the appropriate receiver, and any
+note related logic stuff that should happen immediately happens here. Like with
+DSP, note stuff has to be acyclic. They both appear on the same graph but in
+the UI note things will be blue and audio red or something like that so you
+can tell the difference.
+
+Rendering audio should be done via threads, basically we just start at the
+bottom of the graph and work our way to the other end, with each dsp module
+containing it's own readonly output buffer that only the processing thread can
+write to.
+
+Apparently there is something called a lock free queue which I presume allows
+us to distribute jobs to worker threads without using locks. So anyway, we will
+have one such queue, containing only the jobs that had no dependencies.
+
+All the jobs however maintain a list of links to jobs depending on them, and a
+counter of how many dependencies they have. As jobs are completed, we decrement
+this counter NO LOCK NEEDED, we use something called an atomic counter.
+
+Ok that is pretty sweet, and I think it would be ideal if the job objects were
+just the DSP module objects themselves, we don't need to recreate them, we just
+update them when the graph changes and reset the counters before every buffer.
+We can maintain a special list of the modules with no dependencies since that
+is important to get it going.
+
+Yeah so we just have this pool of threads perpetually waiting for jobs. They
+are never shut down or anything. When they are not working they are just
+looking at the work queue salivating.
+
+
