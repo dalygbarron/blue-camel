@@ -2,6 +2,8 @@
 #include <cmath>
 #include <iostream>
 #include "Job.hh"
+#include "State.hh"
+#include "Server.hh"
 
 float const SAMPLEL_RATE = 44100.0f;
 float const FREQUENCY = 440.0f; // A4 note
@@ -105,13 +107,11 @@ int main(int argc, char const **argv) {
     if (stream == NULL) return 1;
 
     Job::start();
-    SillyJob silly;
-    silly.enqueue("Ying ting");
+    State state;
+    Server server(state);
+    server.enqueue(NULL);
     std::cout << "Playing sine wave. Press ENTER to stop." << std::endl;
-    for (int i = 0; i < 3; i++) {
-        std::string input = std::cin.get();
-        std::cout << input << std::endl;
-    }
+    std::cin.get();
     Job::stop();
     PaError err = Pa_StopStream(stream);
     if(err != paNoError) {

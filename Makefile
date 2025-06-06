@@ -4,8 +4,8 @@ PORT_AUDIO_MAKEFILE = $(PORT_AUDIO_DIR)/Makefile
 FRAMEWORKS = -framework CoreAudio -framework AudioToolbox \
 	-framework AudioUnit -framework CoreFoundation -framework CoreServices
 INCLUDE_DIRS = -I$(PORT_AUDIO_DIR)/include -Ivendor/rapidjson/include \
-	-Ivendor/concurrentqueue
-SOURCES = $(wildcard src/*.cc src/modules/*.cc)
+	-Ivendor/concurrentqueue -Ivendor/mongoose
+SOURCES = $(wildcard src/*.cc src/modules/*.cc) vendor/mongoose/mongoose.c
 HEADERS = $(wildcard src/*.hh src/modules/*.hh)
 
 all: main

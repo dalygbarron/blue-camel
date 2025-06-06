@@ -6,5 +6,16 @@
  * and that kinda stuff yee
  */
 class State {
+    public:
+        enum class ActionType {
 
+        };
+
+        class Action {
+            public:
+                // TODO: my eyes hurt but use a union here.
+
+        };
+
+        float interval;
 };
