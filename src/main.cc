@@ -31,9 +31,14 @@ static int paCallback(
     PaStreamCallbackFlags statusFlags,
     void *userData
 ) {
+
     float const *in = (float const *)inBuffer;
     float *out = (float *)outBuffer;
     SineData *data = (SineData*)userData;
+
+    // TODO: first thing we need to do
+
+
     for(unsigned int i = 0; i < size; i++) {
         *out++ = (sin(data->phaseL) > 0) ? 1 : -1;
         *out++ = (sin(data->phaseR) > 0) ? 1 : -1;
@@ -103,7 +108,10 @@ int main(int argc, char const **argv) {
     SillyJob silly;
     silly.enqueue("Ying ting");
     std::cout << "Playing sine wave. Press ENTER to stop." << std::endl;
-    std::cin.get();
+    for (int i = 0; i < 3; i++) {
+        std::string input = std::cin.get();
+        std::cout << input << std::endl;
+    }
     Job::stop();
     PaError err = Pa_StopStream(stream);
     if(err != paNoError) {

@@ -1,0 +1,54 @@
+Ok, so the thingy will indeed work as a TCP server. Basically, you create
+an instance and it will then output some text saying what port it is listening
+on and shit (maybe you can configure the port if running it by hand but
+generally the server will be started by the wrapper which runs it).
+Once you have made a connection between the server and the client, they can
+begin to communicate via the following protocol that is based on lines of text.
+
+btw, as you will see, each dsp gets assigned an ID number that is used to
+reference it later. The audio output's ID is always 0 and the audio input is
+always 1.
+
+whenever you get a return value it will either start with OK: or ERR: so you
+know if you have the proper response or an error message. In the case of an
+error the format is ERR:error_code:error_message
+
+MAKE_DSP type
+id
+    this command creates a new DSP node by passing in a string of the type of
+    DSP node that it is. In return you get the ID of the new node.
+
+ABOUT_DSP id
+name description n_note_inputs n_audio_inputs n_note_outputs n_audio_outputs note_input_names... audio_input_names... note_output_names... audio_output_names... dependency...
+    Gives you a bunch of info about this dsp, some of which is kind of
+    superficial, but some of which like counts of inputs and list of
+    dependencies is important.
+    Dependencies are given like this: id:type:output:input
+
+ADD_DEPENDENCY type dependent dependency output input
+    this command creates a new dependency between an output on one dsp node, and
+    an input on another, type can be audio or note at present and input and
+    output need to represent valid inputs and outputs.
+    Normally this should just return OK: and nothing else, but if you have given
+    bad DSP ids or numbers of inputs or outputs or tried to create a cycle in
+    the DSP graph you will get an error message.
+
+REMOVE_DEPENDENCY type dependent dependency output input
+    Like add depdendency but it removes one.
+    error if wrong ids or inputs/outputs or no dependency etc.
+
+
+Alright that will do for now. We probably need more than that but lets just
+think for a sec about how we will implement the server part of things. I think
+basically we should create some kind of server object whose job is to manipulate
+things that it has been passed from main.cc like some sort of container over
+all the DSP modules, and probably a container of sequencer stuff etc. Actually
+perhaps what would be better would be a server object that basically just
+handles the server side of things and passes instructions more or less verbatim
+to some kind of State object that keeps track of all the DSP graph and
+Sequencing stuff, and then it validates them and executes them and constructs
+the replies.
+
+Yeah admittedly parsing the protocol feels like a bad fit for either class but
+I think it is closer from a logic perspective to the logic of the engine state
+than the logic of the TCP protocol so it makes sense it be parsed there imo.

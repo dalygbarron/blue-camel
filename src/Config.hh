@@ -6,4 +6,5 @@
 namespace Config {
     float const MAX_BUFFER_SIZE = 256;
     float const SAMPLE_RATE = 44100.0f;
+    unsigned int const MAX_DSPS = 512;
 };
