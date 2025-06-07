@@ -4,6 +4,7 @@
 #include "Job.hh"
 #include "State.hh"
 #include "Server.hh"
+#include "Util.hh"
 
 float const SAMPLEL_RATE = 44100.0f;
 float const FREQUENCY = 440.0f; // A4 note
@@ -15,6 +16,8 @@ struct SineData {
     float phaseR = 0;
     float phaseIncrementL = 0;
     float phaseIncrementR = 0;
+    State *state;
+    Server *server;
 };
 
 class SillyJob: public Job {
@@ -40,7 +43,7 @@ static int paCallback(
 
     // TODO: first thing we need to do
 
-
+    std::lock_guard<std::mutex> lock(data->state->lock);
     for(unsigned int i = 0; i < size; i++) {
         *out++ = (sin(data->phaseL) > 0) ? 1 : -1;
         *out++ = (sin(data->phaseR) > 0) ? 1 : -1;
@@ -50,6 +53,7 @@ static int paCallback(
         data->phaseL = fmod(data->phaseL, 2.0f * (float)M_PI);
         data->phaseR = fmod(data->phaseR, 2.0f * (float)M_PI);
     }
+    //data->server->broadcast(uuid.c_str());
     return paContinue;
 }
 
@@ -97,18 +101,20 @@ PaStream *initPortAudio(PaStreamCallback callback, void *userData) {
 }
 
 int main(int argc, char const **argv) {
+    State state;
+    Server server(state);
     SineData data {
         0,
         0,
         (2.0f * (float)M_PI * FREQUENCY) / SAMPLEL_RATE,
-        (2.0f * (float)M_PI * (FREQUENCY + 0.5f)) / SAMPLEL_RATE
+        (2.0f * (float)M_PI * (FREQUENCY + 0.5f)) / SAMPLEL_RATE,
+        &state,
+        &server
     };
     PaStream *stream = initPortAudio(paCallback, &data);
     if (stream == NULL) return 1;
 
     Job::start();
-    State state;
-    Server server(state);
     server.enqueue(NULL);
     std::cout << "Playing sine wave. Press ENTER to stop." << std::endl;
     std::cin.get();

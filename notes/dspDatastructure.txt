@@ -1,0 +1,6 @@
+How do we efficiently store all the DSP info so that we are able to find a given
+module quickly by their ID, and also maintain a sorted list of them for when we
+add the jobs to the job queue?
+
+I suppose we could just store them in a hash map, and then just maintain a
+sorted list seperate from that.

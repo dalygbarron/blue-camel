@@ -1,6 +1,7 @@
 #pragma once
 
-#include "mongoose.h"
+#include <vector>
+#include <mongoose.h>
 #include "Job.hh"
 #include "State.hh"
 
@@ -14,6 +15,8 @@ class Server: public Job {
     private:
         struct mg_mgr mgr;
         State &state;
+        std::vector<mg_connection *> connections;
+        static unsigned int const MAX_MESSAGE_SIZE = 1024;
 
         void execute(void const *params) override;
 
@@ -37,4 +40,10 @@ class Server: public Job {
          * @param state the audio engine state.
          */
         Server(State &state);
+
+        /**
+         * Broadcast a message to all connected TCP clients.
+         * @param msg is the message to send to them all.
+         */
+        void broadcast(char const *msg);
 };

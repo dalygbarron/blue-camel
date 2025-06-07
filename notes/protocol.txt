@@ -52,3 +52,25 @@ the replies.
 Yeah admittedly parsing the protocol feels like a bad fit for either class but
 I think it is closer from a logic perspective to the logic of the engine state
 than the logic of the TCP protocol so it makes sense it be parsed there imo.
+
+
+
+
+
+
+        // TODO: we need to have a think about what messages can actually do
+        //       before we proceed. Will a string always suffice as a response?
+        //       I think that when the client makes a request that modifies data
+        //       we should acknowledge it by broadcasting it to all clients
+        //       (including the one that sent it hence acknowledgement).
+        //       However, if we want to respond to that with an error then we
+        //       just send it to them since it won't update state.
+        //       If it was a "read only" request then we can just send it to
+        //       them.
+        //       Thus we need two pieces of information from the State object,
+        //       we need the message to send back to the client, and we need
+        //       to know whether it modified state or not. The state object can
+        //       handle appending ERROR: to stuff, even if that is slightly
+        //       ugly. It will also parse the messages tbf. Actually we don't
+        //       need to append OK: to good messages. Appending ERROR: to bad
+        //       ones will do the trick I beleive.
