@@ -65,7 +65,7 @@ class Dsp: public Job {
         };
 
     private:
-        void execute(void const *params) override;
+        bool execute(void const *params) override;
 
         /**
          * This is the function where the actual algorithm is implemented.

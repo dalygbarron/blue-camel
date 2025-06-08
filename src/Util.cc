@@ -28,3 +28,11 @@ std::string Util::getUuid() {
         "-" << randomHex(2) << "-" << randomHex(6);
     return hexstream.str();
 }
+
+Util::Tokener::Tokener(char const *string): ss(string) {}
+
+std::optional<std::string> Util::Tokener::get() {
+    std::string token;
+    if (ss >> token) return token;
+    return {};
+}

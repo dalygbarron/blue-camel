@@ -1,9 +1,10 @@
 #include "Server.hh"
+#include <spdlog/spdlog.h>
 #include "Util.hh"
 
-void Server::execute(void const *params) {
-    mg_mgr_poll(&mgr, 200);
-    enqueue(NULL);
+bool Server::execute(void const *params) {
+    mg_mgr_poll(&mgr, 100);
+    return true;
 }
 
 void Server::callback(
@@ -21,7 +22,7 @@ void Server::callback(
             c
         ), self->connections.end());
     } else if (ev == MG_EV_READ) {
-        std::pair<std::string, bool> result = self->state.process(c->recv.buf);
+        std::pair<std::string, bool> result = self->state.process((char const *)c->recv.buf);
         if (result.second) self->broadcast(result.first.c_str());
         else mg_send(c, result.first.c_str(), result.first.length());
     }

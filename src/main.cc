@@ -20,13 +20,6 @@ struct SineData {
     Server *server;
 };
 
-class SillyJob: public Job {
-    private:
-        void execute(void const *params) {
-            printf((char const *)params);
-        }
-};
-
 // Audio callback function
 static int paCallback(
     const void *inBuffer,
@@ -103,6 +96,7 @@ PaStream *initPortAudio(PaStreamCallback callback, void *userData) {
 int main(int argc, char const **argv) {
     State state;
     Server server(state);
+    Job::List jobs(0);
     SineData data {
         0,
         0,
@@ -113,12 +107,9 @@ int main(int argc, char const **argv) {
     };
     PaStream *stream = initPortAudio(paCallback, &data);
     if (stream == NULL) return 1;
-
-    Job::start();
-    server.enqueue(NULL);
+    jobs.enqueue(&server, NULL);
     std::cout << "Playing sine wave. Press ENTER to stop." << std::endl;
     std::cin.get();
-    Job::stop();
     PaError err = Pa_StopStream(stream);
     if(err != paNoError) {
         std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;

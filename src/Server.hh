@@ -6,10 +6,8 @@
 #include "State.hh"
 
 /**
- * A job whose purpose is to handle http events. In order to avoid the need to
- * lock and to make undoing easier, this does not directly modify the state of
- * the synthesis engine but rather creates a todo list that will be completed
- * synchronously after the next block finishes processing.
+ * A job whose purpose is to handle tcp messages and connections and also send
+ * messages to clients if you want.
  */
 class Server: public Job {
     private:
@@ -18,7 +16,7 @@ class Server: public Job {
         std::vector<mg_connection *> connections;
         static unsigned int const MAX_MESSAGE_SIZE = 1024;
 
-        void execute(void const *params) override;
+        bool execute(void const *params) override;
 
         /**
          * The callback that is called when the server processes a request.

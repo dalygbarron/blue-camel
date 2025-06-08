@@ -12,20 +12,21 @@ Dsp::Dependency::Dependency(
     input(input)
 {}
 
-void Dsp::execute(void const *params) {
+bool Dsp::execute(void const *params) {
     // wait for all dependencies to be completed.
     while (true) {
         bool escape = true;
         for (Dependency &dep: dependencies) {
-            if (dep.dsp->getIterations() <= getIterations()) {
-                escape = false;
-                continue;
-            }
+            // if (dep.dsp->getIterations() <= getIterations()) {
+            //     escape = false;
+            //     continue;
+            // }
         }
         if (escape) break;
     }
     DspJobParams const &dspParams = *((DspJobParams *)params);
     implementation(dspParams);
+    return false;
 }
 
 float const *Dsp::getAudio(uint8_t output) const {

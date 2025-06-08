@@ -10,3 +10,9 @@
 [submodule "vendor/mongoose"]
 	path = vendor/mongoose
 	url = git@github.com:cesanta/mongoose.git
+[submodule "vendor/spdlog"]
+	path = vendor/spdlog
+	url = git@github.com:gabime/spdlog.git
+[submodule "vendor/magic_enum"]
+	path = vendor/magic_enum
+	url = git@github.com:Neargye/magic_enum.git

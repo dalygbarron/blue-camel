@@ -8,3 +8,9 @@ Of course this could easy cause resource starvation except for this next part
 which is that we keep all of the modules in a list that is sorted by how many
 dependencies they have (recursively), and that is the same order by which they
 are added to the work queue each time.
+
+
+!!!!!!!!
+no wait I thought of a better idea that doesn't require sorting.
+We just make it that if a dsp job doesn't have it's dependencies sorted out yet
+it just ends the job and puts itself back onto the end of the queue.

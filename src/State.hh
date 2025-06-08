@@ -10,7 +10,11 @@
 class State {
     public:
         enum class ActionType {
-
+            ADD_DSP,
+            REMOVE_DSP,
+            ADD_DSP_DEPENDENCY,
+            REMOVE_DSP_DEPENDENCY,
+            HELLO
         };
 
         class Action {
